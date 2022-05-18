@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+
 if [ -z "$2" ]
 then
     echo "Usage: ./fastNAT.sh RULE_FILE INTERFACE"
@@ -29,7 +32,6 @@ echo
 read -p "Do you want to apply the above rules? (y/N)? " choice
 case "$choice" in
   y|Y)
-      echo "Applying rules..."
       ;;
   *)
       echo "Exiting..."
@@ -39,29 +41,26 @@ esac
 echo
 
 echo "Enabling IPv4 forwarding..."
-sysctl -w net.ipv4.ip_forward=1
+sudo sysctl -w net.ipv4.ip_forward=1
 
 echo "Clearing NAT table..."
-iptables -t nat -F
+sudo iptables -t nat -F
 
 echo "Setting up NAT rules..."
 while IFS=, read -r src dst
 do
-    iptables -t nat -A PREROUTING -d $src -i $iface -j DNAT --to-destination $dst
-    iptables -t nat -A POSTROUTING -s $dst -o $iface -j SNAT --to-source $src
+    sudo iptables -t nat -A PREROUTING -d $src -i $iface -j DNAT --to-destination $dst
+    sudo iptables -t nat -A POSTROUTING -s $dst -o $iface -j SNAT --to-source $src
 done < $rule_file
 
 echo "Saving NAT rules to /etc/iptables/rules.v4"
-iptables-save -t nat > /etc/iptables/rules.v4
+sudo iptables-save -t nat | sudo tee /etc/iptables/rules.v4
 
 echo "Setting NAT MASQUERADE..."
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
-echo
-echo "Applied rules:"
-echo
-
-iptables -t nat -nL
+echo "Printing updated NAT table..."
+sudo iptables -t nat -nL
 
 echo
 echo -e "\033[1mfastNAT complete.\033[0m"
