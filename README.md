@@ -21,3 +21,11 @@ For example:
 The required iptables entries will be added to the NAT table and printed out for the user to review.
 
 *Warning: This won't work around any restrictions of iptables. The NAT translation will only work properly for machines outside of the NAT machine itself.*
+
+## Persistent iptables
+
+To make iptables rules added by fastNAT persistent across reboot, install `iptables-persistent`, e.g.:
+
+```
+sudo apt install -y iptables-persistent
+```

@@ -54,10 +54,11 @@ do
 done < $rule_file
 
 echo "Saving NAT rules to /etc/iptables/rules.v4"
+sudo mkdir -p /etc/iptables
 sudo iptables-save -t nat | sudo tee /etc/iptables/rules.v4
 
 echo "Setting NAT MASQUERADE..."
-sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -o $iface -j MASQUERADE
 
 echo "Printing updated NAT table..."
 sudo iptables -t nat -nL
